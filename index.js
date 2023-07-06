@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(morgan('dev'));
 
 // Database Connection 
-const uri = process.env.DB_URI 
+const uri = process.env.DB_URI
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -46,10 +46,44 @@ async function run() {
       res.send({ result })
     })
 
+    //get all users
+    app.get('/users', async (req, res) => {
+      const users = await usersCollection.find().toArray()
+      res.send(users)
+    })
+
+    // get a single user by Email
+    app.get('/user/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query)
+      res.send(user)
+    })
+
     //Save Booking Data
     app.post('/bookings', async (req, res) => {
       const bookingData = req.body;
       const result = await bookingsCollection.insertOne(bookingData)
+      res.send(result)
+    })
+
+    //Get Booking Data
+    app.get('/bookings', async (req, res) => {
+      let query = {};
+      const email = req.query.email;
+      if (email) {
+        query = {
+          guestEmail: email,
+        }
+      }
+      const booking = await bookingsCollection.find(query).toArray()
+      res.send(booking)
+    })
+
+    //Add a Home (HOST)
+    app.post('/homes', async (req, res) => {
+      const homeData = req.body;
+      const result = await homesCollection.insertOne(homeData)
       res.send(result)
     })
 
